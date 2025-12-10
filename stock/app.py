@@ -30,7 +30,7 @@ label { color: white !important; }
 
 # LOAD MODEL 
 import os
-model_path = os.path.join(os.path.dirname(os.path.dirname(_file_)), "Stock_Predictions_Model.keras")
+model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Stock_Predictions_Model.keras")
 model = load_model(model_path)
 
 # ------------------ TITLE ------------------
