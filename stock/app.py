@@ -1,79 +1,131 @@
-import streamlit as st
-import yfinance as yf
 import numpy as np
 import pandas as pd
-import os
+import yfinance as yf
 from tensorflow.keras.models import load_model
-from sklearn.preprocessing import MinMaxScaler
+import streamlit as st
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+import os
 
-st.set_page_config(page_title="Stock Prediction App", layout="wide")
+# ------------------ DEBUG INFO ------------------
+st.write("CURRENT DIRECTORY:", os.getcwd())
+st.write("FILES IN THIS DIRECTORY:", os.listdir())
 
-# ------------------ MODEL PATH ------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "Stock_Predictions_Model.keras")
+# ------------------ PAGE CONFIG ------------------
+st.set_page_config(page_title="Stock Market Predictor", layout="centered")
 
-if not os.path.exists(model_path):
-    st.error("❌ Model file missing! Upload Stock_Predictions_Model.keras")
-    st.stop()
+# ------------------ APP STYLE ------------------
+st.markdown("""
+<style>
+.stApp { background-color: #0f172a; }
+html, body, [class*="css"]  { color: white !important; }
+h1, h2, h3, h4, h5, h6 { color: white !important; }
+label { color: white !important; }
+.stTabs [data-baseweb="tab-list"] { background-color: #020617; padding: 10px; border-radius: 12px; }
+.stTabs [data-baseweb="tab"] { background-color: #1e293b !important; color: white !important; font-size: 18px !important; border-radius: 10px !important; margin-right: 8px; padding: 10px 20px; }
+.stTabs [aria-selected="true"] { background-color: #38bdf8 !important; color: black !important; font-weight: bold; }
+</style>
+""", unsafe_allow_html=True)
+
+# ------------------ LOAD MODEL ------------------
+current_dir = os.path.dirname(__file__)
+model_path = os.path.join(current_dir, "Stock_Predictions_Model.keras")
+
+st.write("MODEL PATH:", model_path)
+st.write("MODEL EXISTS:", os.path.exists(model_path))
 
 model = load_model(model_path)
 
-# ------------------ UI ------------------
-st.title("📈 Stock Market Prediction App (ML Based)")
+# ------------------ TITLE ------------------
+st.markdown("""
+<h1 style='text-align: center;'>Stock Market Predictor</h1>
+<h4 style='text-align: center;'>AI Powered Stock Forecasting App</h4>
+""", unsafe_allow_html=True)
 
-stock = st.text_input("Enter Stock Symbol (Example: GOOG, HDFCBANK.NS)")
-start = "2012-01-01"
-end = "2024-12-31"
+# ------------------ USER INPUT ------------------
+stock = st.text_input("Enter Stock Symbol (Example: GOOG, HDFCBANK.NS)", "GOOG")
+start = '2012-01-01'
+end = '2024-12-31'
+data = yf.download(stock, start, end)
 
-# ------------------ FETCH DATA SAFELY ------------------
-if stock:
-    try:
-        data = yf.download(stock, start=start, end=end)
+# ------------------ TABS ------------------
+tab1, tab2, tab3 = st.tabs(["📊 Stock Data", "📈 Charts", "🤖 Prediction"])
 
-        if data.empty:
-            st.error("❌ Invalid stock symbol or no data found.")
-            st.stop()
+with tab1:
+    st.subheader("📊 Stock Data")
+    st.write(data)
 
-    except Exception as e:
-        st.error(f"⚠ Error fetching data: {e}")
-        st.stop()
+# ------------------ MOVING AVERAGE CHARTS ------------------
+ma_50 = data.Close.rolling(50).mean()
+ma_100 = data.Close.rolling(100).mean()
+ma_200 = data.Close.rolling(200).mean()
 
-    # ------------------ TABS ------------------
-    tab1, tab2, tab3 = st.tabs(["📊 Stock Data", "📈 Charts", "🤖 Prediction"])
+fig1 = plt.figure(figsize=(8,6))
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_50, label="MA50")
+plt.legend()
+st.pyplot(fig1)
 
-    # ======== TAB 1: RAW DATA =========
-    with tab1:
-        st.subheader("📊 Stock Data")
-        st.dataframe(data)
+fig2 = plt.figure(figsize=(8,6))
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_50, label="MA50")
+plt.plot(ma_100, label="MA100")
+plt.legend()
+st.pyplot(fig2)
 
-    # ======== TAB 2: CHARTS =========
-    with tab2:
-        st.subheader("📈 Closing Price History")
+fig3 = plt.figure(figsize=(8,6))
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_100, label="MA100")
+plt.plot(ma_200, label="MA200")
+plt.legend()
+st.pyplot(fig3)
 
-        fig = plt.figure(figsize=(12, 5))
-        plt.plot(data['Close'])
-        plt.xlabel("Date")
-        plt.ylabel("Closing Price")
-        plt.title(f"{stock} Closing Price History")
-        st.pyplot(fig)
+with tab2:
+    st.subheader("📈 Charts")
+    st.pyplot(fig1)
+    st.pyplot(fig2)
+    st.pyplot(fig3)
 
-    # ======== TAB 3: PREDICTION =========
-    with tab3:
-        st.subheader("🤖 Stock Price Prediction")
+# ------------------ PREDICTION ------------------
+data_train = pd.DataFrame(data.Close[0:int(len(data)*0.80)])
+data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
 
-        # Prepare data
-        close_prices = data["Close"].values.reshape(-1, 1)
+scaler = MinMaxScaler(feature_range=(0,1))
+past_100_days = data_train.tail(100)
+data_test = pd.concat([past_100_days, data_test], ignore_index=True)
+data_test_scaled = scaler.fit_transform(data_test)
 
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(close_prices)
+x_test, y_test = [], []
 
-        last_100 = scaled_data[-100:]
-        X_test = np.array([last_100])
-        X_test = X_test.reshape((1, 100, 1))
+for i in range(100, data_test_scaled.shape[0]):
+    x_test.append(data_test_scaled[i-100:i])
+    y_test.append(data_test_scaled[i,0])
 
-        # Prediction
-        pred = model.predict(X_test)
-        predicted_price = scaler.inverse_transform(pred)[0][0]
+x_test, y_test = np.array(x_test), np.array(y_test)
 
-        st.success(f"📌 *Predicted closing price for next day: ₹{predicted_price:.2f}*")
+predicted = model.predict(x_test)
+
+scale = 1/scaler.scale_[0]
+predicted = predicted * scale
+y_test = y_test * scale
+
+with tab3:
+    st.subheader("🤖 Model Prediction")
+    st.markdown("Predicted vs Original Prices")
+    fig4 = plt.figure(figsize=(8,6))
+    plt.plot(predicted, label="Predicted Price")
+    plt.plot(y_test, label="Original Price")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.legend()
+    st.pyplot(fig4)
+
+# ------------------ FOOTER ------------------
+st.markdown("""
+<br><br>
+<hr style="border:1px solid #334155">
+<div style="text-align:center; color:white; font-size:16px;">
+    © 2025 | Stock Market Prediction System <br>
+    Developed by <b style="color:#38bdf8;">Anil Gunja</b> 
+</div>
+""", unsafe_allow_html=True)
