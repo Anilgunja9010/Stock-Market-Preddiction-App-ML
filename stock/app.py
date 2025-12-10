@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(page_title="Stock Prediction App", layout="wide")
 
 # ------------------ MODEL PATH ------------------
-BASE_DIR = os.path.dirname(os.path.abspath(_file_))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "Stock_Predictions_Model.keras")
 
 if not os.path.exists(model_path):
