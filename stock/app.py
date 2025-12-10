@@ -5,14 +5,13 @@ from tensorflow.keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
-
 import os
-import streamlit as st
 
+# ------------------ DEBUG INFO ------------------
 st.write("CURRENT DIRECTORY:", os.getcwd())
 st.write("FILES IN THIS DIRECTORY:", os.listdir())
 
-# ------------------ PAGE CONFIG (FIRST LINE AFTER IMPORTS) ------------------
+# ------------------ PAGE CONFIG ------------------
 st.set_page_config(page_title="Stock Market Predictor", layout="centered")
 
 # ------------------ APP STYLE ------------------
@@ -28,9 +27,13 @@ label { color: white !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# LOAD MODEL 
-import os
-model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Stock_Predictions_Model.keras")
+# ------------------ LOAD MODEL ------------------
+current_dir = os.path.dirname(__file__)
+model_path = os.path.join(current_dir, "Stock_Predictions_Model.keras")
+
+st.write("MODEL PATH:", model_path)
+st.write("MODEL EXISTS:", os.path.exists(model_path))
+
 model = load_model(model_path)
 
 # ------------------ TITLE ------------------
