@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 import streamlit as st
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+
+# ------------------ PAGE CONFIG (FIRST LINE AFTER IMPORTS) ------------------
+st.set_page_config(page_title="Stock Market Predictor", layout="centered")
 
 # ------------------ APP STYLE ------------------
 st.markdown("""
@@ -19,10 +22,10 @@ label { color: white !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ LOAD MODEL ------------------
-model = load_model("D:\python\stock\Stock Predictions Model.keras")
+# ------------------ LOAD MODEL (✅ FIXED) ------------------
+model = load_model("Stock_Predictions_Model.keras")
 
-st.set_page_config(page_title="Stock Market Predictor", layout="centered")
+# ------------------ TITLE ------------------
 st.markdown("""
 <h1 style='text-align: center;'>Stock Market Predictor</h1>
 <h4 style='text-align: center;'>AI Powered Stock Forecasting App</h4>
@@ -47,20 +50,23 @@ ma_100 = data.Close.rolling(100).mean()
 ma_200 = data.Close.rolling(200).mean()
 
 fig1 = plt.figure(figsize=(8,6))
-plt.plot(data.Close, 'g', label="Close Price")
-plt.plot(ma_50, 'r', label="MA50")
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_50, label="MA50")
+plt.legend()
 st.pyplot(fig1)
 
 fig2 = plt.figure(figsize=(8,6))
-plt.plot(data.Close, 'g', label="Close Price")
-plt.plot(ma_50, 'r', label="MA50")
-plt.plot(ma_100, 'b', label="MA100")
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_50, label="MA50")
+plt.plot(ma_100, label="MA100")
+plt.legend()
 st.pyplot(fig2)
 
 fig3 = plt.figure(figsize=(8,6))
-plt.plot(data.Close, 'g', label="Close Price")
-plt.plot(ma_100, 'r', label="MA100")
-plt.plot(ma_200, 'b', label="MA200")
+plt.plot(data.Close, label="Close Price")
+plt.plot(ma_100, label="MA100")
+plt.plot(ma_200, label="MA200")
+plt.legend()
 st.pyplot(fig3)
 
 with tab2:
@@ -87,6 +93,7 @@ for i in range(100, data_test_scaled.shape[0]):
 x_test, y_test = np.array(x_test), np.array(y_test)
 
 predicted = model.predict(x_test)
+
 scale = 1/scaler.scale_[0]
 predicted = predicted * scale
 y_test = y_test * scale
@@ -95,8 +102,8 @@ with tab3:
     st.subheader("🤖 Model Prediction")
     st.markdown("Predicted vs Original Prices")
     fig4 = plt.figure(figsize=(8,6))
-    plt.plot(predicted, 'r', label="Predicted Price")
-    plt.plot(y_test, 'g', label="Original Price")
+    plt.plot(predicted, label="Predicted Price")
+    plt.plot(y_test, label="Original Price")
     plt.xlabel("Time")
     plt.ylabel("Price")
     plt.legend()
