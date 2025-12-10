@@ -23,7 +23,7 @@ st.markdown("""
 .stApp { background-color: #0f172a; }
 html, body, [class*="css"]  { color: white !important; }
 h1, h2, h3, h4, h5, h6 { color: white !important; }
-label { color: white !important; }
+
 .stTabs [data-baseweb="tab-list"] {  padding: 10px; border-radius: 12px; }
 .stTabs [data-baseweb="tab"] { 
     background-color: #1e293b !important; 
