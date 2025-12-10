@@ -20,7 +20,7 @@ st.set_page_config(
 # ----------------------------------------------------
 st.markdown("""
 <style>
-.stApp { background-color: #0f172a; }
+.stApp { background-color: white; }
 html, body, [class*="css"]  { color: white !important; }
 h1, h2, h3, h4, h5, h6 { color: white !important; }
 label { color: white !important; }
