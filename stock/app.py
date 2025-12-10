@@ -44,7 +44,7 @@ label { color: white !important; }
 # ----------------------------------------------------
 # Load Machine Learning Model
 # ----------------------------------------------------
-current_dir = os.path.dirname(_file_)
+current_dir = os.path.dirname(__file__)
 model_path = os.path.join(current_dir, "Stock_Predictions_Model.keras")
 
 if not os.path.exists(model_path):
