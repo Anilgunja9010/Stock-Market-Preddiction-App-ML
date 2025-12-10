@@ -20,11 +20,11 @@ st.set_page_config(
 # ----------------------------------------------------
 st.markdown("""
 <style>
-.stApp { background-color: white; }
+.stApp { background-color: #0f172a; }
 html, body, [class*="css"]  { color: white !important; }
 h1, h2, h3, h4, h5, h6 { color: white !important; }
 label { color: white !important; }
-.stTabs [data-baseweb="tab-list"] { background-color: #020617; padding: 10px; border-radius: 12px; }
+.stTabs [data-baseweb="tab-list"] {  padding: 10px; border-radius: 12px; }
 .stTabs [data-baseweb="tab"] { 
     background-color: #1e293b !important; 
     color: white !important; 
