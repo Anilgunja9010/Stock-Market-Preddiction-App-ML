@@ -7,14 +7,17 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 import os
 
-# ------------------ DEBUG INFO ------------------
-st.write("CURRENT DIRECTORY:", os.getcwd())
-st.write("FILES IN THIS DIRECTORY:", os.listdir())
+# ----------------------------------------------------
+# Page Configuration
+# ----------------------------------------------------
+st.set_page_config(
+    page_title="Stock Market Predictor",
+    layout="centered"
+)
 
-# ------------------ PAGE CONFIG ------------------
-st.set_page_config(page_title="Stock Market Predictor", layout="centered")
-
-# ------------------ APP STYLE ------------------
+# ----------------------------------------------------
+# Custom Page Styling
+# ----------------------------------------------------
 st.markdown("""
 <style>
 .stApp { background-color: #0f172a; }
@@ -22,110 +25,153 @@ html, body, [class*="css"]  { color: white !important; }
 h1, h2, h3, h4, h5, h6 { color: white !important; }
 label { color: white !important; }
 .stTabs [data-baseweb="tab-list"] { background-color: #020617; padding: 10px; border-radius: 12px; }
-.stTabs [data-baseweb="tab"] { background-color: #1e293b !important; color: white !important; font-size: 18px !important; border-radius: 10px !important; margin-right: 8px; padding: 10px 20px; }
-.stTabs [aria-selected="true"] { background-color: #38bdf8 !important; color: black !important; font-weight: bold; }
+.stTabs [data-baseweb="tab"] { 
+    background-color: #1e293b !important; 
+    color: white !important; 
+    font-size: 18px !important; 
+    border-radius: 10px !important; 
+    margin-right: 8px; 
+    padding: 10px 20px; 
+}
+.stTabs [aria-selected="true"] { 
+    background-color: #38bdf8 !important; 
+    color: black !important; 
+    font-weight: bold; 
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ LOAD MODEL ------------------
-current_dir = os.path.dirname(__file__)
+# ----------------------------------------------------
+# Load Machine Learning Model
+# ----------------------------------------------------
+current_dir = os.path.dirname(_file_)
 model_path = os.path.join(current_dir, "Stock_Predictions_Model.keras")
 
-st.write("MODEL PATH:", model_path)
-st.write("MODEL EXISTS:", os.path.exists(model_path))
+if not os.path.exists(model_path):
+    st.error("Model file not found. Please upload 'Stock_Predictions_Model.keras'.")
+    st.stop()
 
 model = load_model(model_path)
 
-# ------------------ TITLE ------------------
+# ----------------------------------------------------
+# App Header
+# ----------------------------------------------------
 st.markdown("""
-<h1 style='text-align: center;'>Stock Market Predictor</h1>
-<h4 style='text-align: center;'>AI Powered Stock Forecasting App</h4>
+<h1 style="text-align: center;">Stock Market Predictor</h1>
+<h4 style="text-align: center;">Machine Learning Based Forecasting</h4>
 """, unsafe_allow_html=True)
 
-# ------------------ USER INPUT ------------------
-stock = st.text_input("Enter Stock Symbol (Example: GOOG, HDFCBANK.NS)", "GOOG")
+# ----------------------------------------------------
+# User Input Section
+# ----------------------------------------------------
+stock = st.text_input("Enter Stock Symbol (example: GOOG, HDFCBANK.NS)", "GOOG")
 start = '2012-01-01'
 end = '2024-12-31'
+
+# Fetch historical price data
 data = yf.download(stock, start, end)
 
-# ------------------ TABS ------------------
-tab1, tab2, tab3 = st.tabs(["📊 Stock Data", "📈 Charts", "🤖 Prediction"])
+# ----------------------------------------------------
+# Tabs Layout
+# ----------------------------------------------------
+tab1, tab2, tab3 = st.tabs(["Stock Data", "Charts", "Prediction"])
 
+# ------------------ TAB 1: Raw Data ------------------
 with tab1:
-    st.subheader("📊 Stock Data")
+    st.subheader("Historical Price Data")
     st.write(data)
 
-# ------------------ MOVING AVERAGE CHARTS ------------------
+# ----------------------------------------------------
+# Calculate Moving Averages
+# ----------------------------------------------------
 ma_50 = data.Close.rolling(50).mean()
 ma_100 = data.Close.rolling(100).mean()
 ma_200 = data.Close.rolling(200).mean()
 
-fig1 = plt.figure(figsize=(8,6))
+# Chart 1 – Price + MA50
+fig1 = plt.figure(figsize=(8, 6))
 plt.plot(data.Close, label="Close Price")
-plt.plot(ma_50, label="MA50")
+plt.plot(ma_50, label="50-Day Moving Average")
 plt.legend()
-st.pyplot(fig1)
 
-fig2 = plt.figure(figsize=(8,6))
+# Chart 2 – Price + MA50 + MA100
+fig2 = plt.figure(figsize=(8, 6))
 plt.plot(data.Close, label="Close Price")
-plt.plot(ma_50, label="MA50")
-plt.plot(ma_100, label="MA100")
+plt.plot(ma_50, label="50-Day MA")
+plt.plot(ma_100, label="100-Day MA")
 plt.legend()
-st.pyplot(fig2)
 
-fig3 = plt.figure(figsize=(8,6))
+# Chart 3 – Price + MA100 + MA200
+fig3 = plt.figure(figsize=(8, 6))
 plt.plot(data.Close, label="Close Price")
-plt.plot(ma_100, label="MA100")
-plt.plot(ma_200, label="MA200")
+plt.plot(ma_100, label="100-Day MA")
+plt.plot(ma_200, label="200-Day MA")
 plt.legend()
-st.pyplot(fig3)
 
+# ------------------ TAB 2: Charts ------------------
 with tab2:
-    st.subheader("📈 Charts")
+    st.subheader("Price and Moving Average Charts")
     st.pyplot(fig1)
     st.pyplot(fig2)
     st.pyplot(fig3)
 
-# ------------------ PREDICTION ------------------
-data_train = pd.DataFrame(data.Close[0:int(len(data)*0.80)])
-data_test = pd.DataFrame(data.Close[int(len(data)*0.80):])
+# ----------------------------------------------------
+# Prepare Data for ML Prediction
+# ----------------------------------------------------
+data_train = pd.DataFrame(data.Close[0:int(len(data) * 0.80)])
+data_test = pd.DataFrame(data.Close[int(len(data) * 0.80):])
 
-scaler = MinMaxScaler(feature_range=(0,1))
-past_100_days = data_train.tail(100)
-data_test = pd.concat([past_100_days, data_test], ignore_index=True)
-data_test_scaled = scaler.fit_transform(data_test)
+scaler = MinMaxScaler(feature_range=(0, 1))
 
-x_test, y_test = [], []
+# Combine last 100 days of training with test data
+past_100 = data_train.tail(100)
+data_test = pd.concat([past_100, data_test], ignore_index=True)
 
-for i in range(100, data_test_scaled.shape[0]):
-    x_test.append(data_test_scaled[i-100:i])
-    y_test.append(data_test_scaled[i,0])
+# Scale data
+scaled_data = scaler.fit_transform(data_test)
 
-x_test, y_test = np.array(x_test), np.array(y_test)
+# Create testing sequences
+x_test = []
+y_test = []
 
+for i in range(100, len(scaled_data)):
+    x_test.append(scaled_data[i - 100:i])
+    y_test.append(scaled_data[i, 0])
+
+x_test = np.array(x_test)
+y_test = np.array(y_test)
+
+# ----------------------------------------------------
+# Make Predictions
+# ----------------------------------------------------
 predicted = model.predict(x_test)
 
-scale = 1/scaler.scale_[0]
-predicted = predicted * scale
-y_test = y_test * scale
+# Reverse scaling
+scale_factor = 1 / scaler.scale_[0]
+predicted = predicted * scale_factor
+y_test = y_test * scale_factor
 
+# Prediction chart
+fig4 = plt.figure(figsize=(8, 6))
+plt.plot(predicted, label="Predicted Price")
+plt.plot(y_test, label="Actual Price")
+plt.xlabel("Time")
+plt.ylabel("Price")
+plt.legend()
+
+# ------------------ TAB 3: Prediction ------------------
 with tab3:
-    st.subheader("🤖 Model Prediction")
-    st.markdown("Predicted vs Original Prices")
-    fig4 = plt.figure(figsize=(8,6))
-    plt.plot(predicted, label="Predicted Price")
-    plt.plot(y_test, label="Original Price")
-    plt.xlabel("Time")
-    plt.ylabel("Price")
-    plt.legend()
+    st.subheader("Predicted vs Actual Prices")
     st.pyplot(fig4)
 
-# ------------------ FOOTER ------------------
+# ----------------------------------------------------
+# Footer
+# ----------------------------------------------------
 st.markdown("""
 <br><br>
 <hr style="border:1px solid #334155">
 <div style="text-align:center; color:white; font-size:16px;">
     © 2025 | Stock Market Prediction System <br>
-    Developed by <b style="color:#38bdf8;">Anil Gunja</b> 
+    Developed by <b style="color:#38bdf8;">Anil Gunja</b>
 </div>
 """, unsafe_allow_html=True)
