@@ -155,8 +155,8 @@ plt.plot(y_test, label="Actual Price", color="#f87171")
 plt.xlabel("Time", color="black")
 plt.ylabel("Price", color="black")
 plt.legend(facecolor="#0f172a", labelcolor="white")
-plt.xticks(color="white")
-plt.yticks(color="white")
+plt.xticks(color="black")
+plt.yticks(color="black")
 
 # TAB 3: Prediction
 with tab3:
