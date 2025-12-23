@@ -35,7 +35,7 @@ h1, h2, h3, h4, h5{ color: white !important; }
 }
 .stTabs [aria-selected="true"] { 
     background-color: #38bdf8 !important; 
-    color: black !important; 
+    color: white !important; 
     font-weight: bold; 
 }
 
