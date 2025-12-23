@@ -26,9 +26,9 @@ h1, h2, h3, h4, h5{ color: white !important; }
 
 .stTabs [data-baseweb="tab-list"] {  padding: 10px; border-radius: 12px; }
 .stTabs [data-baseweb="tab"] { 
-    background-color: white !important; 
+    background-color: #1e293b !important; 
     color: white !important; 
-    font-size: 18px !important; 
+    font-size: 50px !important; 
     border-radius: 10px !important; 
     margin-right: 8px; 
     padding: 10px 20px; 
