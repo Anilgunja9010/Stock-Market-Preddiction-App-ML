@@ -13,39 +13,28 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- GLOBAL DARK THEME ----------------
+# ---------------- STREAMLIT DARK UI ----------------
 st.markdown("""
 <style>
-
-/* Background */
 .stApp {
     background-color: #0f172a;
 }
 
-/* Force ALL text to white */
-html, body,
-div, span, p, li, a, label,
+html, body, div, span, p, li, a, label,
 h1, h2, h3, h4, h5, h6,
 .stMarkdown, .stText, .stCaption,
-.stMetric, .stMarkdownContainer,
-[data-testid="stMarkdownContainer"],
-[data-testid="stText"],
-[data-testid="stCaption"],
-[data-testid="stMetricValue"],
-[data-testid="stMetricLabel"] {
-    color: #ffffff !important;
+.stMetric, .stMarkdownContainer {
+    color: white !important;
 }
 
-/* Inputs */
 input, textarea, select {
     background-color: #1e293b !important;
-    color: #ffffff !important;
+    color: white !important;
 }
 
-/* Tabs */
 .stTabs [data-baseweb="tab"] {
     background-color: #1e293b !important;
-    color: #ffffff !important;
+    color: white !important;
     border-radius: 10px !important;
     padding: 10px 20px !important;
 }
@@ -55,17 +44,6 @@ input, textarea, select {
     color: #0f172a !important;
     font-weight: bold;
 }
-
-/* Charts text */
-svg text {
-    fill: #ffffff !important;
-}
-
-/* Footer */
-footer, footer * {
-    color: #ffffff !important;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -83,6 +61,7 @@ st.markdown("<h4 style='text-align:center;'>ML-based Price Forecasting</h4>", un
 
 # ---------------- USER INPUT ----------------
 stock = st.text_input("Enter Stock Symbol (example: GOOG, HDFCBANK.NS)", "GOOG")
+
 start = "2012-01-01"
 end = "2024-12-31"
 
@@ -103,36 +82,52 @@ ma50 = data.Close.rolling(50).mean()
 ma100 = data.Close.rolling(100).mean()
 ma200 = data.Close.rolling(200).mean()
 
-def style_plot():
-    plt.grid(True, alpha=0.3)
-    plt.xticks(color="white")
-    plt.yticks(color="white")
-    plt.xlabel("Time", color="white")
-    plt.ylabel("Price", color="white")
-    plt.legend(facecolor="#0f172a", labelcolor="white")
+def style_white_bg_black_text():
+    ax = plt.gca()
+    ax.set_facecolor("white")
 
-fig1 = plt.figure(figsize=(8,5))
-plt.plot(data.Close, label="Close", color="#38bdf8")
-plt.plot(ma50, label="MA50", color="#f87171")
-style_plot()
+    ax.xaxis.label.set_color("black")
+    ax.yaxis.label.set_color("black")
 
-fig2 = plt.figure(figsize=(8,5))
-plt.plot(data.Close, label="Close", color="#38bdf8")
-plt.plot(ma50, label="MA50", color="#f87171")
-plt.plot(ma100, label="MA100", color="#facc15")
-style_plot()
+    ax.tick_params(axis='x', colors='black')
+    ax.tick_params(axis='y', colors='black')
 
-fig3 = plt.figure(figsize=(8,5))
-plt.plot(data.Close, label="Close", color="#38bdf8")
-plt.plot(ma100, label="MA100", color="#facc15")
-plt.plot(ma200, label="MA200", color="#22c55e")
-style_plot()
+    for spine in ax.spines.values():
+        spine.set_color("black")
+
+    ax.grid(True, color="lightgray", alpha=0.6)
 
 # ---------------- TAB 2: CHARTS ----------------
 with tab2:
     st.subheader("Stock Charts with Moving Averages")
+
+    fig1 = plt.figure(figsize=(8,5))
+    plt.plot(data.Close, label="Close", color="#2563eb")
+    plt.plot(ma50, label="MA50", color="#dc2626")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    style_white_bg_black_text()
+    plt.legend(facecolor="white", edgecolor="black", labelcolor="black")
     st.pyplot(fig1)
+
+    fig2 = plt.figure(figsize=(8,5))
+    plt.plot(data.Close, label="Close", color="#2563eb")
+    plt.plot(ma50, label="MA50", color="#dc2626")
+    plt.plot(ma100, label="MA100", color="#ca8a04")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    style_white_bg_black_text()
+    plt.legend(facecolor="white", edgecolor="black", labelcolor="black")
     st.pyplot(fig2)
+
+    fig3 = plt.figure(figsize=(8,5))
+    plt.plot(data.Close, label="Close", color="#2563eb")
+    plt.plot(ma100, label="MA100", color="#ca8a04")
+    plt.plot(ma200, label="MA200", color="#16a34a")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    style_white_bg_black_text()
+    plt.legend(facecolor="white", edgecolor="black", labelcolor="black")
     st.pyplot(fig3)
 
 # ---------------- PREPARE TEST DATA ----------------
@@ -155,27 +150,26 @@ y_test = np.array(y_test)
 
 # ---------------- PREDICTION ----------------
 predicted = model.predict(x_test)
-
 predicted = scaler.inverse_transform(predicted)
 y_test = scaler.inverse_transform(y_test.reshape(-1,1))
-
-# ---------------- PREDICTION PLOT ----------------
-fig4 = plt.figure(figsize=(8,5))
-plt.plot(predicted, label="Predicted Price", color="#38bdf8")
-plt.plot(y_test, label="Actual Price", color="#f87171")
-style_plot()
 
 # ---------------- TAB 3: PREDICTION ----------------
 with tab3:
     st.subheader("Predicted vs Actual Prices")
+
+    fig4 = plt.figure(figsize=(8,5))
+    plt.plot(predicted, label="Predicted Price", color="#2563eb")
+    plt.plot(y_test, label="Actual Price", color="#dc2626")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    style_white_bg_black_text()
+    plt.legend(facecolor="white", edgecolor="black", labelcolor="black")
     st.pyplot(fig4)
 
 # ---------------- TAB 4: MODEL INFO ----------------
 with tab4:
     st.subheader("Model Information")
-    st.write("This LSTM model is trained on historical stock data to predict future prices.")
-    st.write("Model File:", "Stock_Predictions_Model.keras")
-    st.write("Scaler File:", "scaler.pkl")
+    st.write("This LSTM model is trained on historical stock data.")
     st.markdown("""
 - *Input:* Past 100 days closing prices  
 - *Output:* Next day price  
@@ -187,12 +181,11 @@ with tab4:
 with tab5:
     st.subheader("About the Project")
     st.markdown("""
-*Stock Market Predictor* is an ML-powered web app built using:
+*Stock Market Predictor* is an ML-based Streamlit app.
 
-- Streamlit  
-- TensorFlow (LSTM)  
-- Yahoo Finance API  
-- Custom Dark Theme  
+- TensorFlow (LSTM)
+- Yahoo Finance API
+- Dark UI + Clean Charts
 
 *Developed by Anil Gunja — 2025*
 """)
